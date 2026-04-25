@@ -1,0 +1,28 @@
+name: Build Vince Kernel
+on:
+  workflow_dispatch: # This lets you start the build manually
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Kernel Source
+        uses: actions/checkout@v4
+
+      - name: Install Build Essentials
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y bc build-essential bison flex libssl-dev libncurses5-dev gcc-aarch64-linux-gnu binutils-aarch64-linux-gnu
+
+      - name: Build Kernel
+        run: |
+          export ARCH=arm64
+          export CROSS_COMPILE=aarch64-linux-gnu-
+          make vince-perf_defconfig
+          make -j$(nproc)
+
+      - name: Upload Kernel Image
+        uses: actions/upload-artifact@v4
+        with:
+          name: kernel-image
+          path: arch/arm64/boot/Image.gz-dtb
